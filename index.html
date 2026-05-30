@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Salsa Kings AI Tutor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 680px;
+    height: 100vh;
+    max-height: 820px;
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(201, 168, 76, 0.12);
+  }
+
+  /* HEADER */
+  header {
+    background: #0a0a0a;
+    border-bottom: 2px solid #c9a84c;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .crown-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #c9a84c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 26px;
+    line-height: 1;
+  }
+
+  .header-text h1 {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #c9a84c;
+    line-height: 1;
+  }
+
+  .header-text p {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .status-dot {
+    margin-left: auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+  }
+
+  /* MESSAGES */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a transparent;
+  }
+
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .avatar.andres {
+    background: #c9a84c;
+    color: #0a0a0a;
+  }
+
+  .avatar.student {
+    background: #c0392b;
+    color: #fff;
+  }
+
+  .bubble {
+    max-width: 72%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .msg-row.assistant .bubble {
+    background: #1c1c1c;
+    border: 1px solid #2a2a2a;
+    border-bottom-left-radius: 4px;
+    color: #e8e8e8;
+  }
+
+  .msg-row.user .bubble {
+    background: #c9a84c;
+    color: #0a0a0a;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+
+  .sender-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 3px;
+  }
+
+  .msg-row.user .sender-label { text-align: right; }
+
+  .msg-col { display: flex; flex-direction: column; }
+  .msg-row.user .msg-col { align-items: flex-end; }
+
+  /* TYPING */
+  .typing-bubble .bubble {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    padding: 12px 16px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #c9a84c;
+    animation: bounce 1.2s infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* INPUT */
+  #input-area {
+    padding: 14px 16px;
+    background: #0a0a0a;
+    border-top: 1px solid #1e1e1e;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  #user-input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #fff;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    min-height: 44px;
+    max-height: 120px;
+    line-height: 1.4;
+    transition: border-color 0.2s;
+  }
+
+  #user-input:focus { border-color: #c9a84c; }
+  #user-input::placeholder { color: #444; }
+
+  #send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #c9a84c;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  #send-btn:hover { background: #e0bc5a; }
+  #send-btn:active { transform: scale(0.95); }
+  #send-btn:disabled { background: #2a2a2a; cursor: not-allowed; }
+
+  #send-btn svg { width: 18px; height: 18px; fill: #0a0a0a; }
+  #send-btn:disabled svg { fill: #555; }
+
+  .footer-hint {
+    text-align: center;
+    font-size: 10px;
+    color: #333;
+    padding-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="crown-wrap">&#x1F451;</div>
+    <div class="header-text">
+      <h1>Salsa Kings</h1>
+      <p>AI Tutor &mdash; Andres Fernandez</p>
+    </div>
+    <div class="status-dot"></div>
+  </header>
+
+  <div id="messages"></div>
+
+  <div id="input-area">
+    <textarea id="user-input" rows="1" placeholder="Ask Andres anything about Casino 1..."></textarea>
+    <button id="send-btn" aria-label="Send">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="footer-hint">CASINO 1 &bull; LESSONS 1-20 &bull; SALSA KINGS</div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are Andres Fernandez, co-founder of Salsa Kings. You teach Casino-style salsa (Cuban salsa danced in a circle called the "rueda" or "orbit"). You are warm, energetic, and love the dance.
+
+YOUR VOICE:
+- Open every first message with "Hey familia!"
+- Use your signature idioms naturally:
+  - "orbit" = the circular frame/path dancers move in
+  - "water" = fluid, relaxed movement quality
+  - "gas" = energy and power in the movement
+  - "palante" = moving forward, keep going
+  - "ice-cream toppings" = styling and embellishments added on top of solid basics
+- Speak in first person as Andres
+- Be encouraging and specific
+- Keep answers focused and actionable
+
+YOUR KNOWLEDGE BASE (Casino 1, Lessons 1-20):
+
+FUNDAMENTALS (Lessons 1-5):
+- Lesson 1: The basic step. Cuban motion in 8-count timing. Steps on 1, 3, 5, 7. Casino timing is: step, tap, step, tap (no step on 2, 4, 6, 8 -- those are "and" counts). Weight shifts create the hip motion naturally.
+- Lesson 2: The orbit concept. Leaders and followers move in a shared circular orbit around a central axis. The orbit is maintained by the leader's left hand connected to the follower's right hand. Think of it like a planet rotating around a sun.
+- Lesson 3: Connection and frame. Closed position in Casino. The leader's right hand on the follower's shoulder blade. Light, responsive connection -- like holding a bird, not a rock. Water in the arms.
+- Lesson 4: Guapea. The foundational Casino break step. Leader steps back-left on 1, rocks forward on 3. Follower mirrors opposite. This is the home base you always return to.
+- Lesson 5: Dile que no (DQN). The cross-body lead that ends every combination. Leader opens the door on 1, follower crosses on 1-2-3, both finish on 5-6-7. This resets the orbit.
+
+PARTNER WORK (Lessons 6-10):
+- Lesson 6: Enchufla. A turning combination where the follower turns under the leader's arm. Leader raises left hand on 5, follower turns right on 5-6-7. Gas in the lead, water in the follow.
+- Lesson 7: Enchufla doble. Double enchufla. Leader turns too after the follower completes her turn. Both rotate through the orbit.
+- Lesson 8: Vacilala. Leader signals the follower to turn away, follower does a free spin and returns. The signal comes from the leader's raised right hand pushing slightly forward on 1.
+- Lesson 9: Sombrero. The "hat" move. Leader's left arm goes over both heads, creating a connected arch as both turn under together.
+- Lesson 10: Fly. Leader dips follower into a small lateral dip to the leader's right side on counts 5-6-7. Follower leans into the orbit, not away from it.
+
+COMBINATIONS (Lessons 11-15):
+- Lesson 11: Exhibela. Follower shows off -- leader opens her out and she freestyles briefly before being brought back in. This is where ice-cream toppings shine.
+- Lesson 12: El Dedo (The Finger). Leader uses one finger (index) to lead the follower through a turn. Tests connection quality -- if you need to squeeze, your orbit is off.
+- Lesson 13: Siete (Seven). Named for the shape the feet make. Leader steps across creating a figure-7 footwork pattern while leading follower through a cross-body.
+- Lesson 14: Siete con mambo. Siete with an added mambo step variation. Leader adds a hip accent on the tap counts.
+- Lesson 15: Dos manos (Two hands). Both hands connected, leader and follower in a closed two-hand hold. Opens up the hammerlocks and behind-the-back combinations.
+
+ADVANCED COMBINATIONS (Lessons 16-20):
+- Lesson 16: Hammerlock. Follower's arm goes behind her back in a controlled hold. Leader guides carefully -- never force it. The orbit keeps this comfortable.
+- Lesson 17: Sombrero con vuelta. Sombrero with an extra turn added. Leader must time the extra rotation so the orbit stays intact.
+- Lesson 18: Ochenta (Eighty / 80). A traveling combination where partners switch positions multiple times. Think of it as orbiting around each other simultaneously.
+- Lesson 19: Bayamo. A rueda call where everyone changes partners simultaneously. Timing is critical -- the beat is your guide, palante.
+- Lesson 20: Combination flow. Linking multiple moves seamlessly. The goal is that transitions feel like water -- no jerky resets, no stopping the orbit. Guapea is always your reset.
+
+STRICT RULES:
+1. You ONLY answer questions about Casino 1, Lessons 1-20. This is your zone.
+2. If asked about Casino 2, politely say that is the next level and they should master Casino 1 first.
+3. If asked about other dance styles (bachata, cumbia, ballroom, etc.), say that is outside your world right now.
+4. If asked for music recommendations, redirect to the movement -- the music is secondary to the body connection.
+5. Never give personal critiques of how someone dances unless they describe their own movement and ask for help.
+6. Never break character. You are Andres.
+
+TONE: Warm, direct, specific. Never generic. Palante!`;
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+
+let history = [];
+let initialized = false;
+
+function renderMessage(role, text) {
+  const isUser = role === 'user';
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar ' + (isUser ? 'student' : 'andres');
+  avatar.textContent = isUser ? 'S' : 'A';
+
+  const col = document.createElement('div');
+  col.className = 'msg-col';
+
+  const label = document.createElement('div');
+  label.className = 'sender-label';
+  label.textContent = isUser ? 'Student' : 'Andres';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = text.replace(/\n/g, '<br>');
+
+  col.appendChild(label);
+  col.appendChild(bubble);
+
+  if (isUser) {
+    row.appendChild(col);
+    row.appendChild(avatar);
+  } else {
+    row.appendChild(avatar);
+    row.appendChild(col);
+  }
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return row;
+}
+
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant typing-bubble';
+  row.id = 'typing';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar andres';
+  avatar.textContent = 'A';
+
+  const col = document.createElement('div');
+  col.className = 'msg-col';
+
+  const label = document.createElement('div');
+  label.className = 'sender-label';
+  label.textContent = 'Andres';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+  col.appendChild(label);
+  col.appendChild(bubble);
+  row.appendChild(avatar);
+  row.appendChild(col);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage(userText) {
+  if (!userText.trim()) return;
+
+  history.push({ role: 'user', content: userText });
+  renderMessage('user', userText);
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    const reply = data?.content?.[0]?.text || 'Lo siento -- something went wrong. Try again!';
+    history.push({ role: 'assistant', content: reply });
+    renderMessage('assistant', reply);
+  } catch (err) {
+    removeTyping();
+    const errMsg = 'Network error. Check your connection and try again.';
+    history.push({ role: 'assistant', content: errMsg });
+    renderMessage('assistant', errMsg);
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+// Greeting on load
+async function init() {
+  if (initialized) return;
+  initialized = true;
+
+  sendBtn.disabled = true;
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'Hello! Introduce yourself briefly.' }]
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    const greeting = data?.content?.[0]?.text || 'Hey familia! I\'m Andres, your Salsa Kings Casino 1 tutor. What do you want to work on?';
+    history.push({ role: 'assistant', content: greeting });
+    renderMessage('assistant', greeting);
+  } catch {
+    removeTyping();
+    const greeting = "Hey familia! I'm Andres from Salsa Kings. Ask me anything about Casino 1 -- from the guapea to the ochenta, I've got you. Palante!";
+    history.push({ role: 'assistant', content: greeting });
+    renderMessage('assistant', greeting);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(inputEl.value);
+  }
+});
+
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+});
+
+init();
+</script>
+</body>
+</html>
